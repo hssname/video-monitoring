@@ -26,7 +26,7 @@
                   </el-select>
                 </div>
                 <div class="li">
-                     <div class="item flex flex-v-c" v-for="(item,index) in 50" :key="index">
+                     <div class="item flex flex-v-c" v-for="(item,index) in 50" :key="index" @click="openDialog(item)">
                         <div class="img"><img src="../assets/img/warn.png" /></div>
                         <div class="desc">
                           <p>事件：未佩戴安全帽引发的事故,未佩戴安全帽引发的事故</p>
@@ -51,6 +51,7 @@
           </div>
         </div>
       </div>
+      <itemDialog ref="itemOpen" />
     </div>
 </template>
 <script setup>
@@ -58,12 +59,13 @@ import {ref, computed, onMounted, onUnmounted} from 'vue'
 import videoList from '../components/video.vue';
 import videoFlv from '../components/mianVideo.vue'
 import {addMessageHandler,removeMessageHandler} from '../components/socket.js'
+import itemDialog from '../components/item-dialog.vue';
 
-components: {videoFlv, videoList}
+components: {videoFlv, videoList,itemDialog}
 const loading = ref(false)
 const camera = ref('主机2')
 const playUrl = ref('https://mister-ben.github.io/videojs-flvjs/bbb.flv')
-
+const itemOpen = ref(null)
 
 const nowTime = ref(null)
 const timer = ref(null)
@@ -110,6 +112,11 @@ onMounted(() =>{
 function syncVideo(data){
   loading.value = false
   playUrl.value = 'https://mister-ben.github.io/videojs-flvjs/bbb.flv' || data.src
+  // 获取报警信息
+  // data.list
+}
+const openDialog = (item) =>{
+  itemOpen.value && itemOpen.value.handleOpen()
 }
 onUnmounted(() =>{
   removeMessageHandler('video')
@@ -145,7 +152,7 @@ window.onbeforeunload = function () {
       padding: 5px 20px;
       background: #0E1745;
       box-shadow: inset 0px 0px 10px 0px #144599;
-      font-size: 24px;
+      font-size: 20px;
       background: rgba(19, 40, 90, 0.51);
       box-sizing: border-box;
     }
@@ -214,6 +221,7 @@ window.onbeforeunload = function () {
           padding: 0 10px;
           .item{
             margin-bottom: 10px;
+            cursor: pointer;
             .img{
               width: 100px;
               height: 60px;

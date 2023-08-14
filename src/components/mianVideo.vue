@@ -9,7 +9,7 @@
 </template>
 <script setup>
 import flvjs from 'flv.js';
-import {ref,onMounted,toRefs,onUnmounted } from 'vue'
+import {ref,onMounted,toRefs,watch, onUnmounted } from 'vue'
 
 const player = ref(null)
 const props = defineProps({
@@ -22,8 +22,15 @@ const props = defineProps({
         default: () => 0
     }
 })
-const { url, index } = toRefs(props);
-
+const { index } = toRefs(props);
+const playUrl = ref(props.url)
+watch(
+    () => props.url,
+    (val, old) =>{
+        playUrl.value = val
+        createVideo()
+    },{deep: true}
+)
 onMounted(() =>{
     console.log('isSupported: ' + flvjs.isSupported())
     console.log('是否支持点播视频：' + flvjs.getFeatureList().mseFlvPlayback)
@@ -37,7 +44,7 @@ const createVideo = () =>{
         var videoElement = document.getElementById(`videoElement${index.value}`)
         player.value = flvjs.createPlayer({
             type: "flv", // 是否是直播流，默认 true
-            url: url.value,   // 播放地址
+            url: playUrl.value,   // 播放地址
             hasAudio: false, // 是否有音频
             hasVideo: true, // 是否有视频
             isLive: true, // 是否是直播流
@@ -70,7 +77,7 @@ const flvEvent = () =>{
                 '报错内容' + errorDetail,
                 '报错信息' + errorInfo
             )
-            ElMessage.error(`视频加载失败，请稍候重试！`);
+            // ElMessage.error(`视频加载失败，请稍候重试！`);
         }
     )
     player.value && player.value.on(
@@ -81,7 +88,7 @@ const flvEvent = () =>{
                 '报错内容' + errorDetail,
                 '报错信息' + errorInfo
             )
-            ElMessage.error(`视频加载失败，请稍候重试！`);
+            // ElMessage.error(`视频加载失败，请稍候重试！`);
         }
     )
 }
