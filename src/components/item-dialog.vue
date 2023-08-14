@@ -19,7 +19,7 @@
             </div>
             <template #footer>
             <span class="dialog-footer">
-                <el-button type="primary" @click="dialogVisible = false">已知晓</el-button>
+                <el-button type="primary" @click="dialogVisible = false">我已知晓</el-button>
             </span>
             </template>
         </el-dialog>

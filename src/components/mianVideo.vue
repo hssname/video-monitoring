@@ -1,5 +1,8 @@
 <template>
     <div class="video">
+       <div class="action" @click="zoom">
+          <screenFull :isfull="false" />
+       </div>
         <video 
         :id="`videoElement${index}`" 
         autoplay
@@ -10,7 +13,8 @@
 <script setup>
 import flvjs from 'flv.js';
 import {ref,onMounted,toRefs,watch, onUnmounted } from 'vue'
-
+import screenFull from './svg/screen-full.vue';
+components: {screenFull}
 const player = ref(null)
 const props = defineProps({
     url: {
@@ -77,7 +81,8 @@ const flvEvent = () =>{
                 '报错内容' + errorDetail,
                 '报错信息' + errorInfo
             )
-            // ElMessage.error(`视频加载失败，请稍候重试！`);
+            setTimeout(() => { createVideo() }, 1000);
+            
         }
     )
     player.value && player.value.on(
@@ -88,17 +93,65 @@ const flvEvent = () =>{
                 '报错内容' + errorDetail,
                 '报错信息' + errorInfo
             )
-            // ElMessage.error(`视频加载失败，请稍候重试！`);
+            setTimeout(() => { createVideo() }, 1000);
         }
     )
 }
+const zoom = () => {
+    if (!!isFullscreen()) exitFullScreen()
+    else requestFullScreen()
+}
+const isFullscreen = () => {
+    const documentScreenElement = document.getElementById(`videoElement${index.value}`)
+    return (
+        documentScreenElement.fullscreenElement ||
+        documentScreenElement.msFullscreenElement ||
+        documentScreenElement.mozFullScreenElement ||
+        documentScreenElement.webkitFullscreenElement ||
+        false
+    )
+    // return (
+    //     document.fullscreenElement ||
+    //     document.msFullscreenElement ||
+    //     document.mozFullScreenElement ||
+    //     document.webkitFullscreenElement ||
+    //     false
+    // )
+}
+const requestFullScreen = () => {
+    let documentRequestScreenElement = null
+    documentRequestScreenElement = document.getElementById(`videoElement${index.value}`)
 
-onUnmounted(() => {
-    destory()
-})
+    var requestMethod =
+        documentRequestScreenElement.requestFullScreen ||
+        documentRequestScreenElement.webkitRequestFullScreen ||
+        documentRequestScreenElement.mozRequestFullScreen ||
+        documentRequestScreenElement.msRequestFullScreen
+    if (requestMethod) {
+        requestMethod.call(documentRequestScreenElement)
+    }
+}
+
+const exitFullScreen = () => {
+    const documentFullScreenElement = document.getElementById(`videoElement${index.value}`)
+    var exitMethod =
+        documentFullScreenElement.exitFullscreen ||
+        documentFullScreenElement.mozCancelFullScreen ||
+        documentFullScreenElement.webkitExitFullscreen ||
+        documentFullScreenElement.msExitFullscreen
+    if (exitMethod) {
+        exitMethod.call(documentFullScreenElement)
+    }
+}
 
 </script>
 <style scoped lang="scss">
+.action{
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    cursor: pointer;
+}
 video {
   width: 100%;
   height: 100%;

@@ -298,3 +298,7 @@ align-items: center;
   background-color: #33A1FF;
   opacity: 1
 }
+.el-notification{
+  border: 1px solid #F44336;
+  box-shadow:  0px 0px 12px #F44336;
+}

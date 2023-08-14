@@ -60,6 +60,7 @@ import videoList from '../components/video.vue';
 import videoFlv from '../components/mianVideo.vue'
 import {addMessageHandler,removeMessageHandler} from '../components/socket.js'
 import itemDialog from '../components/item-dialog.vue';
+import warnIcon from '../components/svg/warning.vue'
 
 components: {videoFlv, videoList,itemDialog}
 const loading = ref(false)
@@ -114,6 +115,16 @@ function syncVideo(data){
   playUrl.value = 'https://mister-ben.github.io/videojs-flvjs/bbb.flv' || data.src
   // 获取报警信息
   // data.list
+  if(data.list){
+    ElNotification({
+        title: '告警',
+        message: '检测异常，请在“ AI识别中查看 ”',
+        icon: warnIcon,
+        position: 'bottom-right',
+        duration: 0
+    })
+  }
+  
 }
 const openDialog = (item) =>{
   itemOpen.value && itemOpen.value.handleOpen()
