@@ -7,8 +7,9 @@
         </div>
         <div class="wrap-list flex flex-v-c">
           <div class="mainView panel flex-4">
+            <div class="img"><img :src="playUrl" /></div>
             <!-- 目前就一个视频 -->
-            <videoFlv :url="playUrl" :index="0" />
+            <!-- <videoFlv :url="playUrl" :index="0" /> -->
           </div>
           <div class="warning-list flex-1">
             <div class="total panel">
@@ -56,16 +57,16 @@
 </template>
 <script setup>
 import {ref, computed, onMounted, onUnmounted} from 'vue'
-import videoList from '../components/video.vue';
+
 import videoFlv from '../components/mianVideo.vue'
-import {addMessageHandler,removeMessageHandler} from '../components/socket.js'
+import {addMessageHandler,removeMessageHandler, websocketSend} from '../components/socket.js'
 import itemDialog from '../components/item-dialog.vue';
 import warnIcon from '../components/svg/warning.vue'
 
-components: {videoFlv, videoList,itemDialog}
+components: {videoFlv,itemDialog}
 const loading = ref(false)
 const camera = ref('主机2')
-const playUrl = ref('https://mister-ben.github.io/videojs-flvjs/bbb.flv')
+const playUrl = ref('https://img0.baidu.com/it/u=1435639120,2241364006&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500')
 const itemOpen = ref(null)
 
 const nowTime = ref(null)
@@ -102,20 +103,30 @@ const timeFormate = () =>{
   nowTime.value = `${date.toLocaleString("zh", {year: 'numeric', month: '2-digit', day: '2-digit',hour: '2-digit', minute: '2-digit', second: '2-digit'})} ${getWeek}`
 }
 
+
+
 onMounted(() =>{
+  // 向后端发送事件
+  websocketSend('main')
   timeFormate()
   timer.value = setInterval(() =>{
     timeFormate()
   }, 1000)
   // 获取视频流
-  addMessageHandler("index", "video", syncVideo)
+  addMessageHandler("index", "main", syncMainVideo)
+  addMessageHandler("index", "warn", syncWranList)
 })
-function syncVideo(data){
+function syncMainVideo(res){
   loading.value = false
-  playUrl.value = 'https://mister-ben.github.io/videojs-flvjs/bbb.flv' || data.src
-  // 获取报警信息
-  // data.list
-  if(data.list){
+  // 图片流显示
+  let blob = new Blob([res.data], {type: 'image/jpeg'});
+  const imageUrl = URL.createObjectURL(blob);
+  playUrl.value = imageUrl
+}
+  // 获取报警信息列表
+const syncWranList = (data) =>{
+  loading.value = false
+  if(data){
     ElNotification({
         title: '告警',
         message: '检测异常，请在“ AI识别中查看 ”',
@@ -124,7 +135,6 @@ function syncVideo(data){
         duration: 0
     })
   }
-  
 }
 const openDialog = (item) =>{
   itemOpen.value && itemOpen.value.handleOpen()
@@ -198,9 +208,15 @@ window.onbeforeunload = function () {
         text-shadow: 0px 2px 6px 0px #00356E;
         font-size: 18px;
       }
-      .video{
+      .img{
         padding: 40px 10px 10px 10px;
         height: 100%;
+        img{
+          width: 100%;
+          height: 100%;
+          display: inline-block;
+          vertical-align: middle;
+        }
       }
     }
     .warning-list{

@@ -29,6 +29,7 @@ export const initWebSocket = (wsUrl) =>{
    console.log('websocket 断开: ' + evt.code + ' ' + evt.reason + ' ' + evt.wasClean)
    reConnect()
  }
+  // 接收
  client.onmessage = (evt) => {
    websocketonmessage(evt)
  }
@@ -36,7 +37,9 @@ export const initWebSocket = (wsUrl) =>{
 
 function websocketonmessage(evt){
  const data = JSON.parse(evt.data)
-  getData('video', data)
+  // 后端返回的数据
+  // getData('main', data)
+  // getData('main', data)
 }
 
 /* 匹配页面参数 */
@@ -51,7 +54,11 @@ function getData(type, data){
  }
 }
 
-
+export const websocketSend = (data) =>{
+  if(client && reHeart) {
+    client.send(JSON.stringify(data));
+  }
+}
 export const addMessageHandler = (handlerKey,socketKey,handlerFunction) =>{
  handlers[handlerKey] = {socketKey: socketKey, handler: handlerFunction};
 }
