@@ -7,17 +7,17 @@
         </div>
         <div class="wrap-list flex flex-v-c">
           <div class="mainView panel flex-4">
-            <div class="img"><img :src="playUrl" /></div>
-            <!-- 目前就一个视频 -->
-            <!-- <videoFlv :url="playUrl" :index="0" /> -->
+            <div class="img"><img :src="imgUrl" /></div>
+            <!-- 视频 -->
+            <!-- <videoFlv :url="imgUrl" :index="0" /> -->
           </div>
           <div class="warning-list flex-1">
             <div class="total panel">
-              <p>0</p>
+              <p>{{warnNum}}</p>
             </div>
             <div class="list panel">
                 <div>
-                  <el-select v-model="camera" class="m-2" placeholder="请选择" size="large">
+                  <el-select v-model="select" class="m-2" placeholder="请选择" size="large" @change="filterList">
                         <el-option
                         v-for="item in options"
                         :key="item.value"
@@ -27,12 +27,12 @@
                   </el-select>
                 </div>
                 <div class="li">
-                     <div class="item flex flex-v-c" v-for="(item,index) in 50" :key="index" @click="openDialog(item)">
-                        <div class="img"><img src="../assets/img/warn.png" /></div>
+                     <div class="item flex flex-v-c" v-for="(item,index) in warnList" :key="index" @click="openDialog(item)">
+                        <div class="img"><img :src="item.imgUrl" /></div>
                         <div class="desc">
-                          <p>事件：未佩戴安全帽引发的事故,未佩戴安全帽引发的事故</p>
-                          <p>来源：主机2</p>
-                          <p>时间：2023-08-09 12:00:00</p>
+                          <p>事件：{{item.event}}</p>
+                          <p>来源：{{item.origin}}</p>
+                          <p>时间：{{item.time}}</p>
                         </div>
                      </div>
                 </div>
@@ -57,43 +57,27 @@
 </template>
 <script setup>
 import {ref, computed, onMounted, onUnmounted} from 'vue'
-
 import videoFlv from '../components/mianVideo.vue'
-import {addMessageHandler,removeMessageHandler, websocketSend} from '../components/socket.js'
+import {initWebSocket, addMessageHandler,removeMessageHandler, websocketSend} from '../components/socket.js'
 import itemDialog from '../components/item-dialog.vue';
 import warnIcon from '../components/svg/warning.vue'
 
 components: {videoFlv,itemDialog}
 const loading = ref(false)
-const camera = ref('主机2')
-const playUrl = ref('https://img0.baidu.com/it/u=1435639120,2241364006&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500')
 const itemOpen = ref(null)
 
 const nowTime = ref(null)
 const timer = ref(null)
 
-const options = ref([
-  {
-    value: '主机2',
-    label: '主机2',
-  },
-  {
-    value: 'Option2',
-    label: 'Option2',
-  },
-  {
-    value: 'Option3',
-    label: 'Option3',
-  },
-  {
-    value: 'Option4',
-    label: 'Option4',
-  },
-  {
-    value: 'Option5',
-    label: 'Option5',
-  },
-])
+const notify = ref(null)
+
+const select = ref('')
+const imgUrl = ref('')
+const options = ref([])
+
+const warnList = ref([])
+const allWarn = ref([])
+const warnNum = ref(0)
 
 const timeFormate = () =>{
   const date = new Date();   //获取当前时间
@@ -103,41 +87,71 @@ const timeFormate = () =>{
   nowTime.value = `${date.toLocaleString("zh", {year: 'numeric', month: '2-digit', day: '2-digit',hour: '2-digit', minute: '2-digit', second: '2-digit'})} ${getWeek}`
 }
 
-
-
 onMounted(() =>{
   // 向后端发送事件
-  websocketSend('main')
   timeFormate()
   timer.value = setInterval(() =>{
     timeFormate()
   }, 1000)
   // 获取视频流
-  addMessageHandler("index", "main", syncMainVideo)
-  addMessageHandler("index", "warn", syncWranList)
+  addMessageHandler("mianView", "main", syncMainImage)
+  addMessageHandler("warnView", "warn", syncWranList)
 })
-function syncMainVideo(res){
+function syncMainImage(event){
   loading.value = false
-  // 图片流显示
-  let blob = new Blob([res.data], {type: 'image/jpeg'});
+  // 图片流显示  
+  // 方式一
+  // let blob = new Blob([event.data], {type: 'image/jpeg'});
+  // const imageUrl = URL.createObjectURL(blob);
+  // imgUrl.value = imageUrl
+
+  // 方式二
+  const buffer = new Uint8Array(event.data)
+  const bold = new Blob([buffer],{type: 'image/jpeg'})
   const imageUrl = URL.createObjectURL(blob);
-  playUrl.value = imageUrl
+  imgUrl.value = imageUrl
 }
   // 获取报警信息列表
 const syncWranList = (data) =>{
   loading.value = false
+  console.log(data, 'syncWranList')
   if(data){
-    ElNotification({
+    notify.value && notify.value.close()
+    notify.value = ElNotification({
         title: '告警',
-        message: '检测异常，请在“ AI识别中查看 ”',
+        message: `${data.time}, 【${data.origin}】检测异常，请在“ AI识别中查看 ”`,
         icon: warnIcon,
         position: 'bottom-right',
         duration: 0
     })
   }
+  // 列表根据事件去重
+  allWarn.value.push(data)
+  handleData()
+}
+const handleData = () =>{
+  var hash = {};
+  allWarn.value =  allWarn.value.reduce(function(item, next) {
+    hash[next.id] ? '' : hash[next.id] = true && item.push(next);
+    return item
+  }, [])
+
+  warnNum.value = allWarn.value.length > 9 ? allWarn.value.length: '0' + allWarn.value.length
+  select.value ? filterList(select.value) : warnList.value = allWarn.value 
+
+  // 选择框去重
+  let option = allWarn.value.map(key => key.origin)
+  option = [...new Set(option)]
+  const selectOption = option.map(el => {return {value: el, label: el}})
+  options.value = [...[ {value: '',label: '全部'}], ...selectOption]
+}
+
+const filterList = (val) =>{
+  const list = JSON.parse(JSON.stringify(allWarn.value))
+  warnList.value = val ? list.filter(v => v.origin === val): list
 }
 const openDialog = (item) =>{
-  itemOpen.value && itemOpen.value.handleOpen()
+  itemOpen.value && itemOpen.value.handleOpen(item)
 }
 onUnmounted(() =>{
   removeMessageHandler('video')

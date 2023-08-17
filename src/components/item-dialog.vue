@@ -9,12 +9,13 @@
         >
             <div class="con">
                 <div class="img">
-                    <img src="../assets/img/warn2.png" />
+                    <img :src="item.imgUrl" />
                 </div>
                 <div class="desc">
-                    <p class="flex"><span class="des">事件：</span><span class="desc-con">未佩戴安全帽引发的事故,未佩戴安全帽引发的事故未佩戴安全帽引发的事故,未佩戴安全帽引发的事故未佩戴安全帽引发的事故,未佩戴安全帽引发的事故</span></p>
-                    <p><span class="des">来源：</span>主机2</p>
-                    <p><span class="des">时间：</span>2023-08-09 12:00:00</p>
+                    
+                    <p class="flex"><span class="des">事件：</span><span class="desc-con">{{item.event}}</span></p>
+                    <p><span class="des">来源：</span>{{item.origin}}</p>
+                    <p><span class="des">时间：</span>{{item.time}}</p>
                 </div>
             </div>
             <template #footer>

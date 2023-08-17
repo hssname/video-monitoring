@@ -12,7 +12,8 @@
     "element-plus": "^2.3.8",
     "flv.js": "^1.6.2",
     "terser": "^5.19.1",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vue-cookies": "^1.8.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",
