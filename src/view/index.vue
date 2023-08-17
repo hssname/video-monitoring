@@ -98,6 +98,7 @@ onMounted(() =>{
   addMessageHandler("warnView", "warn", syncWranList)
 })
 function syncMainImage(event){
+  console.log(event, 'eventeventeventevent')
   loading.value = false
   // 图片流显示  
   // 方式一
@@ -107,7 +108,7 @@ function syncMainImage(event){
 
   // 方式二
   const buffer = new Uint8Array(event.data)
-  const bold = new Blob([buffer],{type: 'image/jpeg'})
+  const blob = new Blob([buffer],{type: 'image/jpeg'})
   const imageUrl = URL.createObjectURL(blob);
   imgUrl.value = imageUrl
 }
