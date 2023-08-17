@@ -1,16 +1,20 @@
 import {ElMessage} from 'element-plus';
+import VueCookies from 'vue-cookies';
 var reHeart = false // 是否允许重新连接
 var timeoutTimer = null // 心跳定时器
 var reTimeoutTimer = null // 重连定时器
 var client = null
 var handlers = {}
-
+var num = 0
 
 
 /* 初始化socket */
-export const initWebSocket = (wsUrl) =>{
+export const initWebSocket = () =>{
+  const token = VueCookies.get('tbds_token')
+  console.log(token, 'token')
  if ("WebSocket" in window) {
-   client = new WebSocket(wsUrl);
+  let protocol = location.protocol == "https:" ? 'wss': 'ws'
+  client = new WebSocket(`${protocol}://${location.host}/api/wcu/ws`);
  } else {
      return "WebSocket" in window ? false : ElMessage.warning('当前浏览器不支持 WebSocket。部分功能不能使用。')
  }
@@ -30,28 +34,39 @@ export const initWebSocket = (wsUrl) =>{
    reConnect()
  }
   // 接收
+  client.binaryType = 'arraybuffer'
  client.onmessage = (evt) => {
    websocketonmessage(evt)
  }
 }
 
 function websocketonmessage(evt){
- const data = JSON.parse(evt.data)
-  // 后端返回的数据
-  // getData('main', data)
-  // getData('main', data)
+  // 判断是否是流，如果是流则是 mainView
+  try {
+    const json = JSON.parse(evt.data)
+    if (json) {
+      const obj = {
+        id: 0 + num,
+        imgUrl: 'https://static.runoob.com/images/demo/demo2.jpg',
+        event: '未佩戴安全帽引发的事故,未佩戴安全帽引发的事故',
+        origin: `主机${num}`,
+        time: '2023-08-09 12:00:00'
+      }
+      num++
+      getData('warn', obj)
+    }
+  } catch (err) {
+    getData('main', evt) 
+  }  
 }
 
 /* 匹配页面参数 */
 function getData(type, data){
- for (let handleKey in handlers) {
-     if (handlers.hasOwnProperty(handleKey) &&
-         Object.prototype.toString.call(handlers[handleKey].handler) === "[object Function]" &&
-         handlers[handleKey].socketKey === type) {
-         if(loading){ hideLoading() }
-         handlers[handleKey].handler(data);
-     } 
- }
+  for (let handleKey in handlers) {
+    if (handlers.hasOwnProperty(handleKey) && handlers[handleKey].socketKey === type){
+      handlers[handleKey].handler(data);
+    }
+  }
 }
 
 export const websocketSend = (data) =>{

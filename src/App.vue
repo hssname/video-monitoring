@@ -1,11 +1,13 @@
 <script setup>
 import index from './view/index.vue';
 import { initWebSocket } from './components/socket';
+import VueCookies from 'vue-cookies';
 components:{index}
-
+const token = "cz_u2YyaVxD7N2ZJL_UsazVU7nDZARYSNo__"
+console.log(token, 'token')
+VueCookies.set('tbds_token',token);
 // 连接websocket
-const wsUrl = 'wss://xxxxxxxxxxx'
-initWebSocket(wsUrl)
+initWebSocket()
 
 </script>
 
