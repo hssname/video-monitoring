@@ -1,15 +1,12 @@
 <template>
     <div class="wrap">
       <div class="wrap-con">
-        <!-- <h2>智能监控平台</h2> -->
         <div class="select flex flex-v-c flex-s-b">
             <p>{{nowTime}}</p>
         </div>
         <div class="wrap-list flex flex-v-c">
           <div class="mainView panel flex-4">
             <div class="img"><img :src="imgUrl" /></div>
-            <!-- 视频 -->
-            <!-- <videoFlv :url="imgUrl" :index="0" /> -->
           </div>
           <div class="warning-list flex-1">
             <div class="total panel">
@@ -57,13 +54,12 @@
 </template>
 <script setup>
 import {ref, computed, onMounted, onUnmounted} from 'vue'
-import videoFlv from '../components/mianVideo.vue'
-import {initWebSocket, addMessageHandler,removeMessageHandler, websocketSend} from '../components/socket.js'
+import {addMessageHandler,removeMessageHandler, websocketSend} from '../components/socket.js'
 import itemDialog from '../components/item-dialog.vue';
 import warnIcon from '../components/svg/warning.vue'
 
-components: {videoFlv,itemDialog}
-const loading = ref(false)
+components: {itemDialog}
+const loading = ref(true)
 const itemOpen = ref(null)
 
 const nowTime = ref(null)
@@ -80,7 +76,7 @@ const allWarn = ref([])
 const warnNum = ref(0)
 
 const timeFormate = () =>{
-  const date = new Date();   //获取当前时间
+  const date = new Date();
   const week = date.getDay();
   const weeks = ["日", "一", "二", "三", "四", "五", "六"];
   const getWeek = "星期" + weeks[week];
@@ -88,25 +84,15 @@ const timeFormate = () =>{
 }
 
 onMounted(() =>{
-  // 向后端发送事件
   timeFormate()
-  timer.value = setInterval(() =>{
-    timeFormate()
-  }, 1000)
+  timer.value = setInterval(() =>{ timeFormate() }, 1000)
   // 获取视频流
   addMessageHandler("mianView", "main", syncMainImage)
   addMessageHandler("warnView", "warn", syncWranList)
 })
+// 获取主界面图片
 function syncMainImage(event){
-  console.log(event, 'eventeventeventevent')
   loading.value = false
-  // 图片流显示  
-  // 方式一
-  // let blob = new Blob([event.data], {type: 'image/jpeg'});
-  // const imageUrl = URL.createObjectURL(blob);
-  // imgUrl.value = imageUrl
-
-  // 方式二
   const buffer = new Uint8Array(event.data)
   const blob = new Blob([buffer],{type: 'image/jpeg'})
   const imageUrl = URL.createObjectURL(blob);
@@ -115,12 +101,11 @@ function syncMainImage(event){
   // 获取报警信息列表
 const syncWranList = (data) =>{
   loading.value = false
-  console.log(data, 'syncWranList')
   if(data){
     notify.value && notify.value.close()
     notify.value = ElNotification({
         title: '告警',
-        message: `${data.time}, 【${data.origin}】检测异常，请在“ AI识别中查看 ”`,
+        message: `${data.time},【${data.origin}】检测异常，请在“ AI动态识别 ” 中查看`,
         icon: warnIcon,
         position: 'bottom-right',
         duration: 0
@@ -155,7 +140,8 @@ const openDialog = (item) =>{
   itemOpen.value && itemOpen.value.handleOpen(item)
 }
 onUnmounted(() =>{
-  removeMessageHandler('video')
+  removeMessageHandler('mianView')
+  removeMessageHandler('warnView')
   clearInterval(timer.value)
   timer.value = null
 })
@@ -278,7 +264,6 @@ window.onbeforeunload = function () {
             .desc{
               width: calc(100% - 105px);
               p{
-                // width: 100%;
                 height: 20px;
                 overflow: hidden;
                 white-space: nowrap;
@@ -318,7 +303,6 @@ window.onbeforeunload = function () {
       .list::before{
         content: "AI动态识别";
       }
-     
     }
     
   }
