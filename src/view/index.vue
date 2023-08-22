@@ -25,7 +25,7 @@
                 </div>
                 <div class="li">
                      <div class="item flex flex-v-c" v-for="(item,index) in warnList" :key="index" @click="openDialog(item)">
-                        <div class="img"><img :src="item.imgUrl" /></div>
+                        <div class="img"><img :src="itemImgUrl(item.imgUrl)" /></div>
                         <div class="desc">
                           <p>事件：{{item.event}}</p>
                           <p>来源：{{item.origin}}</p>
@@ -90,6 +90,13 @@ onMounted(() =>{
   addMessageHandler("mianView", "main", syncMainImage)
   addMessageHandler("warnView", "warn", syncWranList)
 })
+
+const itemImgUrl = computed(() =>{
+  return function(url){
+    return `data:image/jpeg;base64,${url}`
+  }
+})
+
 // 获取主界面图片
 function syncMainImage(event){
   loading.value = false

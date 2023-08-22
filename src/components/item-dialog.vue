@@ -9,7 +9,7 @@
         >
             <div class="con">
                 <div class="img">
-                    <img :src="item.imgUrl" />
+                    <img :src="itemImgUrl(item.imgUrl)" />
                 </div>
                 <div class="desc">
                     
@@ -27,13 +27,20 @@
     </div>
 </template>
 <script setup>
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 const item = ref(null)
 const dialogVisible = ref(false)
 const handleOpen = (items) =>{
     dialogVisible.value = true
     item.value = items
 }
+
+const itemImgUrl = computed(() =>{
+  return function(url){
+    return `data:image/jpeg;base64,${url}`
+  }
+})
+
 const handleClose = () =>{
     dialogVisible.value = false
     item.value = null
